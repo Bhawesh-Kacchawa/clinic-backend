@@ -3,17 +3,24 @@ package com.example.dentalbackend.repository;
 import com.example.dentalbackend.dto.PublicSessionDto;
 import com.example.dentalbackend.entity.ClinicSession;
 import com.example.dentalbackend.entity.SessionType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ClinicSessionRepository extends JpaRepository<ClinicSession, UUID> {
 
     boolean existsByClinic_IdAndDateAndType(UUID clinicId, LocalDate date, SessionType type);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select session from ClinicSession session where session.id = :id")
+    Optional<ClinicSession> findByIdForUpdate(@Param("id") UUID id);
 
     @Query("""
             select new com.example.dentalbackend.dto.PublicSessionDto(

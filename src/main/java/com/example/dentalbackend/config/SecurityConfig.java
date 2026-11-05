@@ -14,8 +14,11 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/public/bookings"))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, "/api/public/clinics/*/sessions").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/public/bookings/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/public/bookings").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())

@@ -56,7 +56,7 @@ public class DevDataSeedConfiguration {
         );
     }
 
-    private static class DevDataSeeder implements CommandLineRunner {
+    public static class DevDataSeeder implements CommandLineRunner {
 
         private final ClinicRepository clinicRepository;
         private final StaffUserRepository staffUserRepository;
@@ -65,7 +65,7 @@ public class DevDataSeedConfiguration {
         private final String doctorEmail;
         private final String doctorPassword;
 
-        private DevDataSeeder(
+        public DevDataSeeder(
                 ClinicRepository clinicRepository,
                 StaffUserRepository staffUserRepository,
                 ClinicSessionRepository clinicSessionRepository,

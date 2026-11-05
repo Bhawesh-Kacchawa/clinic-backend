@@ -1,4 +1,4 @@
 demo:
   doctor:
     email: ${DEMO_DOCTOR_EMAIL:doctor@demo-dental.local}
-    password: ${DEMO_DOCTOR_PASSWORD:demo-doctor-password}
+    password: ${DEMO_DOCTOR_PASSWORD:1234}

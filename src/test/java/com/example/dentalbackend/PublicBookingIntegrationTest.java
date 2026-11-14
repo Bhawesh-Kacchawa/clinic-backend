@@ -89,7 +89,7 @@ class PublicBookingIntegrationTest {
 
         Clinic clinic = new Clinic();
         clinic.setName("Concurrency Test Clinic");
-        clinic.setSlug("concurrency-" + UUID.randomUUID());
+        clinic.setSlug("demo-dental");
         clinic = clinicRepository.save(clinic);
 
         StaffUser doctor = new StaffUser();
@@ -130,7 +130,7 @@ class PublicBookingIntegrationTest {
                     ready.countDown();
                     start.await();
                     CreatePublicBookingRequest request = new CreatePublicBookingRequest(
-                            sessionId,
+                            sessionId.toString(),
                             "Patient " + requestNumber,
                             "555000" + requestNumber,
                             null
@@ -197,5 +197,57 @@ class PublicBookingIntegrationTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    void acceptsSessionTypeAsSessionIdForDemoClinic() {
+        CreatePublicBookingRequest request = new CreatePublicBookingRequest(
+                "MORNING",
+                "Alias Patient",
+                "5550009999",
+                null
+        );
+
+        ResponseEntity<PublicBookingResponse> response = restTemplate.postForEntity(
+                "http://localhost:" + port + "/api/public/bookings",
+                request,
+                PublicBookingResponse.class
+        );
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().tokenNo());
+        assertNotNull(response.getBody().session());
+        assertEquals(sessionId, response.getBody().session().sessionId());
+        assertEquals(SessionType.MORNING, response.getBody().session().type());
+        assertEquals(sessionDate, response.getBody().session().date());
+        assertEquals(LocalTime.of(9, 0), response.getBody().session().startTime());
+        assertEquals(LocalTime.of(13, 0), response.getBody().session().endTime());
+    }
+
+    @Test
+    void opensScheduledSessionWhenBookingOpeningTimeHasPassed() {
+        ClinicSession session = clinicSessionRepository.findById(sessionId).orElseThrow();
+        session.setBookingStatus(BookingStatus.SCHEDULED);
+        clinicSessionRepository.saveAndFlush(session);
+
+        CreatePublicBookingRequest request = new CreatePublicBookingRequest(
+                sessionId.toString(),
+                "Scheduled Patient",
+                "5550008888",
+                null
+        );
+
+        ResponseEntity<PublicBookingResponse> response = restTemplate.postForEntity(
+                "http://localhost:" + port + "/api/public/bookings",
+                request,
+                PublicBookingResponse.class
+        );
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(
+                BookingStatus.OPEN,
+                clinicSessionRepository.findById(sessionId).orElseThrow().getBookingStatus()
+        );
     }
 }

@@ -20,9 +20,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Optional;
 
 @Configuration
 @Profile("dev")
@@ -132,7 +134,17 @@ public class DevDataSeedConfiguration {
                 LocalTime startTime,
                 LocalTime endTime
         ) {
-            if (repository.existsByClinic_IdAndDateAndType(clinic.getId(), date, type)) {
+            Optional<ClinicSession> existingSession = repository.findByClinic_IdAndDateAndType(
+                    clinic.getId(),
+                    date,
+                    type
+            );
+            if (existingSession.isPresent()) {
+                ClinicSession session = existingSession.get();
+                if (session.getBookingStatus() == BookingStatus.SCHEDULED
+                        && !Instant.now().isBefore(session.getBookingOpensAt())) {
+                    session.setBookingStatus(BookingStatus.OPEN);
+                }
                 return;
             }
 
@@ -145,7 +157,7 @@ public class DevDataSeedConfiguration {
             session.setEndTime(endTime);
             session.setMaxAppointments(20);
             session.setBookingOpensAt(date.atStartOfDay(CLINIC_ZONE).toInstant());
-            session.setBookingStatus(BookingStatus.SCHEDULED);
+            session.setBookingStatus(BookingStatus.OPEN);
             session.setAvgMinutes(15);
             repository.save(session);
         }

@@ -16,11 +16,24 @@ import java.util.UUID;
 
 public interface ClinicSessionRepository extends JpaRepository<ClinicSession, UUID> {
 
-    boolean existsByClinic_IdAndDateAndType(UUID clinicId, LocalDate date, SessionType type);
+    Optional<ClinicSession> findByClinic_IdAndDateAndType(UUID clinicId, LocalDate date, SessionType type);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select session from ClinicSession session where session.id = :id")
     Optional<ClinicSession> findByIdForUpdate(@Param("id") UUID id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select session from ClinicSession session
+            where session.clinic.slug = :clinicSlug
+              and session.date = :date
+              and session.type = :type
+            """)
+    Optional<ClinicSession> findByClinicSlugAndDateAndTypeForUpdate(
+            @Param("clinicSlug") String clinicSlug,
+            @Param("date") LocalDate date,
+            @Param("type") SessionType type
+    );
 
     @Query("""
             select new com.example.dentalbackend.dto.PublicSessionDto(

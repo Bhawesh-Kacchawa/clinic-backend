@@ -19,6 +19,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/public/clinics/*/sessions").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/public/bookings/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/public/bookings").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clinics/*/bookings").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())

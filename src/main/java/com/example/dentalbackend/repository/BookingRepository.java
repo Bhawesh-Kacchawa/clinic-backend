@@ -1,5 +1,6 @@
 package com.example.dentalbackend.repository;
 
+import com.example.dentalbackend.dto.ClinicBookingDto;
 import com.example.dentalbackend.entity.Booking;
 import com.example.dentalbackend.entity.BookingState;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
@@ -46,5 +49,28 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     Optional<Booking> findFirstBySession_IdAndStatusOrderByQueueOrderAsc(
             UUID sessionId,
             BookingState status
+    );
+
+    @Query("""
+            select new com.example.dentalbackend.dto.ClinicBookingDto(
+                booking.id,
+                booking.tokenNo,
+                booking.patientName,
+                booking.phone,
+                booking.status,
+                session.type,
+                session.date,
+                session.startTime,
+                session.endTime
+            )
+            from Booking booking
+            join booking.session session
+            where session.clinic.slug = :clinicSlug
+              and session.date = :date
+            order by session.startTime, booking.queueOrder
+            """)
+    List<ClinicBookingDto> findClinicBookingsForDate(
+            @Param("clinicSlug") String clinicSlug,
+            @Param("date") LocalDate date
     );
 }

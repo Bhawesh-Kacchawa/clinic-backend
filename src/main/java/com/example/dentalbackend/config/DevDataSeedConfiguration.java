@@ -16,7 +16,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -36,17 +35,12 @@ public class DevDataSeedConfiguration {
     private static final ZoneId CLINIC_ZONE = ZoneId.of("Asia/Kolkata");
 
     @Bean
-    PasswordEncoder devPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     CommandLineRunner seedDevData(
             ClinicRepository clinicRepository,
             StaffUserRepository staffUserRepository,
             ClinicSessionRepository clinicSessionRepository,
             PlatformTransactionManager transactionManager,
-            PasswordEncoder devPasswordEncoder,
+            PasswordEncoder passwordEncoder,
             @Value("${demo.doctor.email}") String doctorEmail,
             @Value("${demo.doctor.password}") String doctorPassword
     ) {
@@ -54,7 +48,7 @@ public class DevDataSeedConfiguration {
                 clinicRepository,
                 staffUserRepository,
                 clinicSessionRepository,
-                devPasswordEncoder,
+                passwordEncoder,
                 doctorEmail,
                 doctorPassword
         );
@@ -90,7 +84,7 @@ public class DevDataSeedConfiguration {
         public void seed() {
             Clinic clinic = clinicRepository.findBySlug(CLINIC_SLUG)
                     .orElseGet(this::createClinic);
-            StaffUser doctor = staffUserRepository.findByEmail(doctorEmail)
+            StaffUser doctor = staffUserRepository.findByEmailIgnoreCase(doctorEmail)
                     .map(existingDoctor -> {
                         if (!existingDoctor.getClinic().getId().equals(clinic.getId())
                                 || existingDoctor.getRole() != StaffRole.DOCTOR) {

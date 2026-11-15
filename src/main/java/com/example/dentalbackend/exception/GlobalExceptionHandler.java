@@ -16,6 +16,26 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException exception) {
+        return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidStaffRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidStaffRequest(InvalidStaffRequestException exception) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateClinicSessionException.class)
+    public ResponseEntity<ApiError> handleDuplicateClinicSession(DuplicateClinicSessionException exception) {
+        return error(HttpStatus.CONFLICT, "DUPLICATE_SESSION", exception.getMessage());
+    }
+
+    @ExceptionHandler(QueueStateConflictException.class)
+    public ResponseEntity<ApiError> handleQueueStateConflict(QueueStateConflictException exception) {
+        return error(HttpStatus.CONFLICT, "QUEUE_STATE_CONFLICT", exception.getMessage());
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(NotFoundException exception) {
         return error(HttpStatus.NOT_FOUND, "NOT_FOUND", exception.getMessage());

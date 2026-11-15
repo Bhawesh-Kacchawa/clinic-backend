@@ -18,6 +18,19 @@ public interface ClinicSessionRepository extends JpaRepository<ClinicSession, UU
 
     Optional<ClinicSession> findByClinic_IdAndDateAndType(UUID clinicId, LocalDate date, SessionType type);
 
+    Optional<ClinicSession> findByIdAndClinic_Id(UUID id, UUID clinicId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select session from ClinicSession session
+            where session.id = :id
+              and session.clinic.id = :clinicId
+            """)
+    Optional<ClinicSession> findByIdAndClinic_IdForUpdate(
+            @Param("id") UUID id,
+            @Param("clinicId") UUID clinicId
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select session from ClinicSession session where session.id = :id")
     Optional<ClinicSession> findByIdForUpdate(@Param("id") UUID id);

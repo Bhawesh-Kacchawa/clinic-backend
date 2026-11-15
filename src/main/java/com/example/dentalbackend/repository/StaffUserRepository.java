@@ -8,5 +8,7 @@ import java.util.UUID;
 
 public interface StaffUserRepository extends JpaRepository<StaffUser, UUID> {
 
-    Optional<StaffUser> findByEmail(String email);
+    Optional<StaffUser> findByEmailIgnoreCase(String email);
+
+    Optional<StaffUser> findByIdAndClinic_IdAndActiveTrue(UUID id, UUID clinicId);
 }

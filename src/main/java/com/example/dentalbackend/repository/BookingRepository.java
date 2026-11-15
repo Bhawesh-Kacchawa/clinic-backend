@@ -3,6 +3,8 @@ package com.example.dentalbackend.repository;
 import com.example.dentalbackend.dto.ClinicBookingDto;
 import com.example.dentalbackend.entity.Booking;
 import com.example.dentalbackend.entity.BookingState;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +23,18 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
               and booking.status <> com.example.dentalbackend.entity.BookingState.CANCELLED
             """)
     long countActiveBySessionId(@Param("sessionId") UUID sessionId);
+
+    @Query("""
+            select count(booking)
+            from Booking booking
+            where booking.session.id = :sessionId
+              and booking.session.clinic.id = :clinicId
+              and booking.status <> com.example.dentalbackend.entity.BookingState.CANCELLED
+            """)
+    long countActiveBySessionIdAndClinicId(
+            @Param("sessionId") UUID sessionId,
+            @Param("clinicId") UUID clinicId
+    );
 
     boolean existsBySession_IdAndPhoneAndStatusNot(
             UUID sessionId,
@@ -51,6 +65,38 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             BookingState status
     );
 
+    List<Booking> findBySession_IdAndSession_Clinic_IdOrderByQueueOrderAsc(
+            UUID sessionId,
+            UUID clinicId
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select booking from Booking booking
+            where booking.session.id = :sessionId
+              and booking.session.clinic.id = :clinicId
+              and booking.status = :status
+            order by booking.queueOrder
+            """)
+    List<Booking> findBySessionIdAndStatusForUpdate(
+            @Param("sessionId") UUID sessionId,
+            @Param("clinicId") UUID clinicId,
+            @Param("status") BookingState status
+    );
+
+    Optional<Booking> findByIdAndSession_Clinic_Id(UUID id, UUID clinicId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select booking from Booking booking
+            where booking.id = :bookingId
+              and booking.session.clinic.id = :clinicId
+            """)
+    Optional<Booking> findByIdAndClinicIdForUpdate(
+            @Param("bookingId") UUID bookingId,
+            @Param("clinicId") UUID clinicId
+    );
+
     @Query("""
             select new com.example.dentalbackend.dto.ClinicBookingDto(
                 booking.id,
@@ -65,12 +111,12 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             )
             from Booking booking
             join booking.session session
-            where session.clinic.slug = :clinicSlug
+            where session.clinic.id = :clinicId
               and session.date = :date
             order by session.startTime, booking.queueOrder
             """)
     List<ClinicBookingDto> findClinicBookingsForDate(
-            @Param("clinicSlug") String clinicSlug,
+            @Param("clinicId") UUID clinicId,
             @Param("date") LocalDate date
     );
 }

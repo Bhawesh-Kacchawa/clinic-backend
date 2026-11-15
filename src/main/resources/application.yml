@@ -20,5 +20,8 @@ spring:
     time-zone: Asia/Kolkata
 
 app:
+  jwt:
+    secret: ${JWT_SECRET:ZGVudGFsLWJhY2tlbmQtZGV2ZWxvcG1lbnQtb25seS1zZWNyZXQtY2hhbmdlLWJlZm9yZS1kZXBsb3k=}
+    expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
   cors:
     allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}

@@ -18,7 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -44,11 +45,12 @@ public class DevDataSeedConfiguration {
             ClinicRepository clinicRepository,
             StaffUserRepository staffUserRepository,
             ClinicSessionRepository clinicSessionRepository,
+            PlatformTransactionManager transactionManager,
             PasswordEncoder devPasswordEncoder,
             @Value("${demo.doctor.email}") String doctorEmail,
             @Value("${demo.doctor.password}") String doctorPassword
     ) {
-        return new DevDataSeeder(
+        DevDataSeeder seeder = new DevDataSeeder(
                 clinicRepository,
                 staffUserRepository,
                 clinicSessionRepository,
@@ -56,9 +58,11 @@ public class DevDataSeedConfiguration {
                 doctorEmail,
                 doctorPassword
         );
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        return args -> transactionTemplate.executeWithoutResult(status -> seeder.seed());
     }
 
-    public static class DevDataSeeder implements CommandLineRunner {
+    public static class DevDataSeeder {
 
         private final ClinicRepository clinicRepository;
         private final StaffUserRepository staffUserRepository;
@@ -83,9 +87,7 @@ public class DevDataSeedConfiguration {
             this.doctorPassword = doctorPassword;
         }
 
-        @Override
-        @Transactional
-        public void run(String... args) {
+        public void seed() {
             Clinic clinic = clinicRepository.findBySlug(CLINIC_SLUG)
                     .orElseGet(this::createClinic);
             StaffUser doctor = staffUserRepository.findByEmail(doctorEmail)

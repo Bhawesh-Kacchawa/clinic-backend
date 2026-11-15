@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.example.dentalbackend.PublicBookingIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 3.017 s <<< FAILURE! -- in com.example.dentalbackend.PublicBookingIntegrationTest
-com.example.dentalbackend.PublicBookingIntegrationTest -- Time elapsed: 3.017 s <<< ERROR!
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 2.800 s <<< FAILURE! -- in com.example.dentalbackend.PublicBookingIntegrationTest
+com.example.dentalbackend.PublicBookingIntegrationTest -- Time elapsed: 2.800 s <<< ERROR!
 java.lang.IllegalStateException: Could not find a valid Docker environment. Please see logs and check configuration
 	at org.testcontainers.dockerclient.DockerClientProviderStrategy.lambda$getFirstValidStrategy$7(DockerClientProviderStrategy.java:274)
 	at java.base/java.util.Optional.orElseThrow(Optional.java:403)

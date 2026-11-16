@@ -46,6 +46,28 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     int findMaxTokenNoBySessionId(@Param("sessionId") UUID sessionId);
 
     @Query("""
+            select coalesce(max(booking.tokenNo), 0)
+            from Booking booking
+            where booking.session.id = :sessionId
+              and booking.session.clinic.id = :clinicId
+            """)
+    int findMaxTokenNoBySessionIdAndClinicId(
+            @Param("sessionId") UUID sessionId,
+            @Param("clinicId") UUID clinicId
+    );
+
+    @Query("""
+            select coalesce(max(booking.queueOrder), 0)
+            from Booking booking
+            where booking.session.id = :sessionId
+              and booking.session.clinic.id = :clinicId
+            """)
+    int findMaxQueueOrderBySessionIdAndClinicId(
+            @Param("sessionId") UUID sessionId,
+            @Param("clinicId") UUID clinicId
+    );
+
+    @Query("""
             select count(booking)
             from Booking booking
             where booking.session.id = :sessionId
@@ -68,6 +90,18 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findBySession_IdAndSession_Clinic_IdOrderByQueueOrderAsc(
             UUID sessionId,
             UUID clinicId
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select booking from Booking booking
+            where booking.session.id = :sessionId
+              and booking.session.clinic.id = :clinicId
+            order by booking.queueOrder
+            """)
+    List<Booking> findQueueBySessionIdAndClinicIdForUpdate(
+            @Param("sessionId") UUID sessionId,
+            @Param("clinicId") UUID clinicId
     );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

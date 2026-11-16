@@ -21,4 +21,10 @@ Create a session with `POST /api/staff/sessions` using `type`, `date`, `startTim
 
 Get a session's ordered bookings with `GET /api/staff/sessions/{id}/queue`. Advance the queue with `POST /api/staff/queue/call-next` and a JSON `sessionId`; the current serving booking is completed and the next booked booking starts. When there is no next booking, the response sets `queueEmpty` to `true`. Call a specific booked token with `POST /api/staff/queue/call/{bookingId}`; it moves to `CALLED`.
 
+Skip a booked, called, or serving token with `POST /api/staff/queue/{bookingId}/skip`; it increments `skipCount` and advances to the next booked token when no other token is currently serving. Requeue a skipped or no-show token with `POST /api/staff/queue/{bookingId}/requeue`; it returns to `BOOKED` without changing `tokenNo` and is placed immediately after the serving token (or at the end if no token is serving). Mark an unserved token as a no-show with `POST /api/staff/queue/{bookingId}/no-show`. Add a walk-in with `POST /api/staff/bookings/walk-in` and `sessionId`, `patientName`, `phone`, and optional `reason`; walk-ins are appended to that session's queue.
+
+Staff queue changes are recorded in the clinic-scoped audit log with staff ID, token number, action, and before/after status. Fetch it with `GET /api/staff/audit-log`. Undo the most recent audited action for a booking with `POST /api/staff/queue/undo` and JSON `{"bookingId":"<booking UUID>"}`. Undo is rejected if the booking has changed since that event or that event has already been undone.
+
+Queue actions that affect more than one booking (such as advancing or skipping into the next token) are audited as one operation and are reverted together by undo. An undone walk-in is retained as a cancelled booking so its audit history and token number remain intact.
+
 Set `JWT_SECRET` to a private Base64-encoded key of at least 256 bits outside local development. The built-in key is for development only and must not be used in production. `/api/public/**` remains accessible without authentication.

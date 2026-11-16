@@ -1,5 +1,6 @@
 com/example/dentalbackend/dto/BookingSessionResponse.class
 com/example/dentalbackend/controller/package-info.class
+com/example/dentalbackend/dto/QueueSkipResponse.class
 com/example/dentalbackend/entity/Clinic.class
 com/example/dentalbackend/entity/SessionType.class
 com/example/dentalbackend/entity/BookingStatus.class
@@ -10,6 +11,7 @@ com/example/dentalbackend/service/PublicBookingService.class
 com/example/dentalbackend/dto/CallNextRequest.class
 com/example/dentalbackend/dto/PublicSessionsResponse.class
 com/example/dentalbackend/exception/DuplicateBookingException.class
+com/example/dentalbackend/dto/StaffAuditLogResponse.class
 com/example/dentalbackend/exception/InvalidStaffRequestException.class
 com/example/dentalbackend/security/JwtAuthenticationFilter.class
 com/example/dentalbackend/dto/StaffClinicSessionResponse.class
@@ -20,6 +22,7 @@ com/example/dentalbackend/dto/UpdateClinicSessionStatusRequest$BookingAction.cla
 com/example/dentalbackend/entity/BookingSource.class
 com/example/dentalbackend/exception/package-info.class
 com/example/dentalbackend/config/DevDataSeedConfiguration$DevDataSeeder.class
+com/example/dentalbackend/dto/UndoQueueActionRequest.class
 com/example/dentalbackend/entity/Booking.class
 com/example/dentalbackend/config/package-info.class
 com/example/dentalbackend/service/StaffClinicSessionService.class
@@ -40,17 +43,20 @@ com/example/dentalbackend/config/CorsConfig.class
 com/example/dentalbackend/dto/LoginRequest.class
 com/example/dentalbackend/DentalBackendApplication.class
 com/example/dentalbackend/dto/StaffQueueBookingResponse.class
+com/example/dentalbackend/service/StaffQueueService$BookingSnapshot.class
 com/example/dentalbackend/dto/PublicSessionDto.class
 com/example/dentalbackend/config/SecurityConfig.class
 com/example/dentalbackend/entity/StaffUser.class
 com/example/dentalbackend/controller/PublicBookingController.class
 com/example/dentalbackend/exception/QueueStateConflictException.class
+com/example/dentalbackend/repository/AuditLogRepository.class
 com/example/dentalbackend/entity/ClinicSession.class
 com/example/dentalbackend/service/ClinicBookingService.class
 com/example/dentalbackend/exception/GlobalExceptionHandler.class
 com/example/dentalbackend/service/AuthService.class
 com/example/dentalbackend/repository/StaffUserRepository.class
 com/example/dentalbackend/dto/UpdateClinicSessionRequest.class
+com/example/dentalbackend/dto/CreateWalkInBookingRequest.class
 com/example/dentalbackend/exception/SessionFullException.class
 com/example/dentalbackend/config/DevDataSeedConfiguration.class
 com/example/dentalbackend/service/PublicClinicSessionService.class

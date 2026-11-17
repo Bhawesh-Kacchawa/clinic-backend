@@ -5,8 +5,10 @@ import com.example.dentalbackend.entity.SessionType;
 
 import java.time.Instant;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public record PublicSessionDto(
+        UUID id,
         SessionType type,
         LocalTime startTime,
         LocalTime endTime,

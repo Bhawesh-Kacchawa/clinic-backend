@@ -50,6 +50,7 @@ public interface ClinicSessionRepository extends JpaRepository<ClinicSession, UU
 
     @Query("""
             select new com.example.dentalbackend.dto.PublicSessionDto(
+                session.id,
                 session.type,
                 session.startTime,
                 session.endTime,

@@ -205,7 +205,7 @@ class PublicBookingIntegrationTest {
                 "MORNING",
                 "Alias Patient",
                 "5550009999",
-                null
+                "12 Example Street"
         );
 
         ResponseEntity<PublicBookingResponse> response = restTemplate.postForEntity(
@@ -223,6 +223,10 @@ class PublicBookingIntegrationTest {
         assertEquals(sessionDate, response.getBody().session().date());
         assertEquals(LocalTime.of(9, 0), response.getBody().session().startTime());
         assertEquals(LocalTime.of(13, 0), response.getBody().session().endTime());
+        assertEquals(
+                "12 Example Street",
+                bookingRepository.findById(response.getBody().bookingId()).orElseThrow().getAddress()
+        );
     }
 
     @Test

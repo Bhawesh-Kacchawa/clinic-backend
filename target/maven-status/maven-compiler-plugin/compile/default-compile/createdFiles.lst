@@ -3,6 +3,7 @@ com/example/dentalbackend/controller/package-info.class
 com/example/dentalbackend/dto/QueueSkipResponse.class
 com/example/dentalbackend/entity/Clinic.class
 com/example/dentalbackend/entity/SessionType.class
+com/example/dentalbackend/controller/ClinicQueueController.class
 com/example/dentalbackend/entity/BookingStatus.class
 com/example/dentalbackend/controller/AuthController.class
 com/example/dentalbackend/dto/PublicBookingResponse.class
@@ -25,6 +26,7 @@ com/example/dentalbackend/config/DevDataSeedConfiguration$DevDataSeeder.class
 com/example/dentalbackend/dto/UndoQueueActionRequest.class
 com/example/dentalbackend/entity/Booking.class
 com/example/dentalbackend/config/package-info.class
+com/example/dentalbackend/dto/ClinicCallNextResponse.class
 com/example/dentalbackend/service/StaffClinicSessionService.class
 com/example/dentalbackend/repository/ClinicRepository.class
 com/example/dentalbackend/exception/InvalidCredentialsException.class

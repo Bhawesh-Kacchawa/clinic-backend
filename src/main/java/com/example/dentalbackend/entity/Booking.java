@@ -49,7 +49,7 @@ public class Booking {
     private String phone;
 
     @Column(length = 1000)
-    private String reason;
+    private String address;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

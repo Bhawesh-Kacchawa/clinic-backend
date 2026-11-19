@@ -77,7 +77,7 @@ public class PublicBookingService {
         booking.setQueueOrder(tokenNo * 10);
         booking.setPatientName(request.patientName());
         booking.setPhone(request.phone());
-        booking.setReason(request.reason());
+        booking.setAddress(request.address());
         booking.setStatus(BookingState.BOOKED);
         booking.setSource(BookingSource.ONLINE);
 

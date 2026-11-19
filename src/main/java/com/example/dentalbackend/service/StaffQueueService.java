@@ -1,6 +1,7 @@
 package com.example.dentalbackend.service;
 
 import com.example.dentalbackend.dto.CallNextResponse;
+import com.example.dentalbackend.dto.ClinicCallNextResponse;
 import com.example.dentalbackend.dto.CreateWalkInBookingRequest;
 import com.example.dentalbackend.dto.QueueSkipResponse;
 import com.example.dentalbackend.dto.StaffAuditLogResponse;
@@ -10,6 +11,8 @@ import com.example.dentalbackend.entity.Booking;
 import com.example.dentalbackend.entity.BookingSource;
 import com.example.dentalbackend.entity.BookingState;
 import com.example.dentalbackend.entity.ClinicSession;
+import com.example.dentalbackend.entity.SessionType;
+import com.example.dentalbackend.entity.StaffUser;
 import com.example.dentalbackend.exception.NotFoundException;
 import com.example.dentalbackend.exception.QueueStateConflictException;
 import com.example.dentalbackend.exception.SessionFullException;
@@ -21,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +35,8 @@ import java.util.UUID;
 
 @Service
 public class StaffQueueService {
+
+    private static final ZoneId CLINIC_TIME_ZONE = ZoneId.of("Asia/Kolkata");
 
     private final BookingRepository bookingRepository;
     private final ClinicSessionRepository clinicSessionRepository;
@@ -61,8 +68,45 @@ public class StaffQueueService {
     @Transactional
     public CallNextResponse callNext(UUID staffId, UUID clinicId, UUID sessionId) {
         var actor = requireActor(staffId, clinicId);
-        UUID operationId = UUID.randomUUID();
         ClinicSession session = lockOwnedSession(sessionId, clinicId);
+        return advanceQueue(session, actor, clinicId);
+    }
+
+    @Transactional
+    public ClinicCallNextResponse callNextForToday(
+            UUID staffId,
+            UUID clinicId,
+            String clinicSlug,
+            SessionType sessionType
+    ) {
+        var actor = requireActor(staffId, clinicId);
+        LocalDate today = LocalDate.now(CLINIC_TIME_ZONE);
+        ClinicSession session = clinicSessionRepository.findByClinicIdAndSlugAndDateAndTypeForUpdate(
+                        clinicId,
+                        clinicSlug,
+                        today,
+                        sessionType
+                )
+                .orElseThrow(() -> new NotFoundException("Clinic session not found."));
+        CallNextResponse callNextResponse = advanceQueue(session, actor, clinicId);
+        List<StaffQueueBookingResponse> queue = bookingRepository
+                .findBySession_IdAndSession_Clinic_IdOrderByQueueOrderAsc(session.getId(), clinicId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return new ClinicCallNextResponse(
+                session.getId(),
+                callNextResponse.completedBooking(),
+                callNextResponse.servingBooking(),
+                callNextResponse.queueEmpty(),
+                queue
+        );
+    }
+
+    private CallNextResponse advanceQueue(ClinicSession session, StaffUser actor, UUID clinicId) {
+        UUID operationId = UUID.randomUUID();
+        UUID sessionId = session.getId();
         Instant now = Instant.now();
 
         Booking currentServing = bookingRepository
@@ -258,7 +302,7 @@ public class StaffQueueService {
         ));
         booking.setPatientName(request.patientName());
         booking.setPhone(request.phone());
-        booking.setReason(request.reason());
+        booking.setAddress(request.address());
         booking.setStatus(BookingState.BOOKED);
         booking.setSource(BookingSource.WALK_IN);
         bookingRepository.save(booking);
@@ -469,7 +513,7 @@ public class StaffQueueService {
                 booking.getQueueOrder(),
                 booking.getPatientName(),
                 booking.getPhone(),
-                booking.getReason(),
+                booking.getAddress(),
                 booking.getStatus(),
                 booking.getCalledAt(),
                 booking.getStartedAt(),

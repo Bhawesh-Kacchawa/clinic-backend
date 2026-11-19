@@ -1,6 +1,7 @@
 package com.example.dentalbackend.service;
 
 import com.example.dentalbackend.dto.CallNextResponse;
+import com.example.dentalbackend.dto.ClinicCallNextResponse;
 import com.example.dentalbackend.dto.CreateWalkInBookingRequest;
 import com.example.dentalbackend.entity.AuditLog;
 import com.example.dentalbackend.entity.Booking;
@@ -9,6 +10,7 @@ import com.example.dentalbackend.entity.BookingState;
 import com.example.dentalbackend.entity.Clinic;
 import com.example.dentalbackend.entity.ClinicSession;
 import com.example.dentalbackend.entity.StaffUser;
+import com.example.dentalbackend.entity.SessionType;
 import com.example.dentalbackend.repository.AuditLogRepository;
 import com.example.dentalbackend.repository.BookingRepository;
 import com.example.dentalbackend.repository.ClinicSessionRepository;
@@ -134,6 +136,41 @@ class StaffQueueServiceTest {
         assertNull(response.completedBooking());
         assertNull(response.servingBooking());
         assertTrue(response.queueEmpty());
+    }
+
+    @Test
+    void callNextByClinicAndSessionTypeReturnsUpdatedQueue() {
+        UUID clinicId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        Booking current = booking(sessionId, 1, BookingState.SERVING);
+        Booking next = booking(sessionId, 2, BookingState.BOOKED);
+        ClinicSession session = session(sessionId);
+        when(clinicSessionRepository.findByClinicIdAndSlugAndDateAndTypeForUpdate(
+                eq(clinicId),
+                eq("demo-dental"),
+                any(),
+                eq(SessionType.EVENING)
+        )).thenReturn(Optional.of(session));
+        when(bookingRepository.findBySessionIdAndStatusForUpdate(sessionId, clinicId, BookingState.SERVING))
+                .thenReturn(List.of(current));
+        when(bookingRepository.findBySessionIdAndStatusForUpdate(sessionId, clinicId, BookingState.BOOKED))
+                .thenReturn(List.of(next));
+        when(bookingRepository.findBySession_IdAndSession_Clinic_IdOrderByQueueOrderAsc(sessionId, clinicId))
+                .thenReturn(List.of(current, next));
+
+        ClinicCallNextResponse response = staffQueueService.callNextForToday(
+                STAFF_ID,
+                clinicId,
+                "demo-dental",
+                SessionType.EVENING
+        );
+
+        assertEquals(sessionId, response.sessionId());
+        assertEquals(current.getId(), response.completedBooking().id());
+        assertEquals(next.getId(), response.servingBooking().id());
+        assertEquals(List.of(BookingState.DONE, BookingState.SERVING),
+                response.queue().stream().map(item -> item.status()).toList());
+        assertFalse(response.queueEmpty());
     }
 
     @Test
@@ -374,14 +411,21 @@ class StaffQueueServiceTest {
         var response = staffQueueService.createWalkIn(
                 STAFF_ID,
                 clinicId,
-                new CreateWalkInBookingRequest(sessionId, "Walk-in patient", "5550003", null)
+                new CreateWalkInBookingRequest(
+                        sessionId,
+                        "Walk-in patient",
+                        "5550003",
+                        "34 Example Avenue"
+                )
         );
 
         assertEquals(3, response.tokenNo());
         assertEquals(30, response.queueOrder());
+        assertEquals("34 Example Avenue", response.address());
         assertEquals(BookingState.BOOKED, response.status());
         verify(bookingRepository).save(org.mockito.ArgumentMatchers.argThat(
                 booking -> booking.getSource() == BookingSource.WALK_IN
+                        && "34 Example Avenue".equals(booking.getAddress())
         ));
     }
 

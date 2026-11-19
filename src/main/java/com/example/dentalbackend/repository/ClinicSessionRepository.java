@@ -48,6 +48,21 @@ public interface ClinicSessionRepository extends JpaRepository<ClinicSession, UU
             @Param("type") SessionType type
     );
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select session from ClinicSession session
+            where session.clinic.id = :clinicId
+              and session.clinic.slug = :clinicSlug
+              and session.date = :date
+              and session.type = :type
+            """)
+    Optional<ClinicSession> findByClinicIdAndSlugAndDateAndTypeForUpdate(
+            @Param("clinicId") UUID clinicId,
+            @Param("clinicSlug") String clinicSlug,
+            @Param("date") LocalDate date,
+            @Param("type") SessionType type
+    );
+
     @Query("""
             select new com.example.dentalbackend.dto.PublicSessionDto(
                 session.id,

@@ -5,6 +5,7 @@
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/package-info.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/AuthController.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/ClinicBookingController.java
+/home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/ClinicQueueController.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/PublicBookingController.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/PublicClinicSessionController.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/StaffClinicSessionController.java
@@ -15,6 +16,7 @@
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/CallNextRequest.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/CallNextResponse.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/ClinicBookingDto.java
+/home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/ClinicCallNextResponse.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/CreateClinicSessionRequest.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/CreatePublicBookingRequest.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/dto/CreateWalkInBookingRequest.java

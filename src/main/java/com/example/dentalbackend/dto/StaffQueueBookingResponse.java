@@ -11,7 +11,7 @@ public record StaffQueueBookingResponse(
         int queueOrder,
         String patientName,
         String phone,
-        String reason,
+        String address,
         BookingState status,
         Instant calledAt,
         Instant startedAt,

@@ -137,6 +137,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
                 booking.tokenNo,
                 booking.patientName,
                 booking.phone,
+                booking.address,
                 booking.status,
                 session.type,
                 session.date,

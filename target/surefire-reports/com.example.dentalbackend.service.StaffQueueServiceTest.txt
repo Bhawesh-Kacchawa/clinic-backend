@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.example.dentalbackend.service.StaffQueueServiceTest
--------------------------------------------------------------------------------
-Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.732 s -- in com.example.dentalbackend.service.StaffQueueServiceTest

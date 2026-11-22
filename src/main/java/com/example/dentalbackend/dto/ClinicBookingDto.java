@@ -12,6 +12,7 @@ public record ClinicBookingDto(
         int tokenNo,
         String patientName,
         String phone,
+        String address,
         BookingState status,
         SessionType sessionType,
         LocalDate sessionDate,

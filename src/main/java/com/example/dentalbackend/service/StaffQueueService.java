@@ -145,17 +145,55 @@ public class StaffQueueService {
     @Transactional
     public StaffQueueBookingResponse callManually(UUID staffId, UUID clinicId, UUID bookingId) {
         var actor = requireActor(staffId, clinicId);
-        UUID operationId = UUID.randomUUID();
         Booking booking = findLockedBooking(clinicId, bookingId);
-        if (booking.getStatus() != BookingState.BOOKED) {
-            throw new QueueStateConflictException("Only a booked token can be called manually.");
+        return moveToServing(actor, clinicId, booking);
+    }
+
+    @Transactional
+    public StaffQueueBookingResponse serveManually(
+            UUID staffId,
+            UUID clinicId,
+            String clinicSlug,
+            UUID bookingId
+    ) {
+        var actor = requireActor(staffId, clinicId);
+        Booking booking = findLockedBooking(clinicId, bookingId);
+        ClinicSession session = booking.getSession();
+        if (!clinicSlug.equals(session.getClinic().getSlug())) {
+            throw new NotFoundException("Booking not found.");
+        }
+        return moveToServing(actor, clinicId, booking);
+    }
+
+    private StaffQueueBookingResponse moveToServing(StaffUser actor, UUID clinicId, Booking booking) {
+        if (booking.getStatus() != BookingState.BOOKED && booking.getStatus() != BookingState.CALLED) {
+            throw new QueueStateConflictException("Only a booked or called token can be moved to serving.");
+        }
+
+        ClinicSession session = booking.getSession();
+        UUID operationId = UUID.randomUUID();
+        Instant now = Instant.now();
+        List<Booking> currentServingBookings = bookingRepository.findBySessionIdAndStatusForUpdate(
+                session.getId(),
+                clinicId,
+                BookingState.SERVING
+        );
+        for (Booking currentServing : currentServingBookings) {
+            BookingSnapshot before = snapshot(currentServing);
+            currentServing.setStatus(BookingState.DONE);
+            currentServing.setCompletedAt(now);
+            bookingRepository.save(currentServing);
+            recordAudit(currentServing, session, actor, operationId, "MANUAL_CALL_COMPLETE", before);
         }
 
         BookingSnapshot before = snapshot(booking);
-        booking.setStatus(BookingState.CALLED);
-        booking.setCalledAt(Instant.now());
+        booking.setStatus(BookingState.SERVING);
+        if (booking.getCalledAt() == null) {
+            booking.setCalledAt(now);
+        }
+        booking.setStartedAt(now);
         bookingRepository.save(booking);
-        recordAudit(booking, booking.getSession(), actor, operationId, "CALL", before);
+        recordAudit(booking, session, actor, operationId, "MANUAL_CALL_SERVE", before);
         return toResponse(booking);
     }
 
@@ -369,6 +407,28 @@ public class StaffQueueService {
     @Transactional(readOnly = true)
     public List<StaffAuditLogResponse> getAuditLog(UUID clinicId) {
         return auditLogRepository.findStaffQueueAuditLog(clinicId);
+    }
+
+    @Transactional
+    public StaffQueueBookingResponse undoLastSessionAction(UUID staffId, UUID clinicId, UUID sessionId) {
+        var actor = requireActor(staffId, clinicId);
+        ClinicSession session = lockOwnedSession(sessionId, clinicId);
+        
+        AuditLog lastAction = auditLogRepository.findLastSessionActionForUndo(clinicId, sessionId)
+                .orElseThrow(() -> new QueueStateConflictException("No queue action is available to undo."));
+        
+        if (lastAction.getEntityId() == null) {
+            throw new QueueStateConflictException("The audit event does not reference a booking.");
+        }
+        
+        return undo(staffId, clinicId, lastAction.getEntityId());
+    }
+
+    @Transactional(readOnly = true)
+    public UUID getSessionIdForClinicSlugDateAndType(UUID clinicId, String clinicSlug, LocalDate date, SessionType type) {
+        return clinicSessionRepository.findByClinicIdAndSlugAndDateAndType(clinicId, clinicSlug, date, type)
+                .map(ClinicSession::getId)
+                .orElseThrow(() -> new NotFoundException("Clinic session not found."));
     }
 
     private ClinicSession lockOwnedSession(UUID sessionId, UUID clinicId) {

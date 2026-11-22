@@ -56,4 +56,22 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
             @Param("clinicId") UUID clinicId,
             @Param("operationId") UUID operationId
     );
+
+    @Query("""
+            select log from AuditLog log
+            where log.clinic.id = :clinicId
+              and log.entityType = 'BOOKING'
+              and log.entityId in (
+                  select b.id from Booking b
+                  where b.session.id = :sessionId
+              )
+              and log.action != 'UNDO'
+              and log.undone = false
+            order by log.auditOrder desc
+            limit 1
+            """)
+    Optional<AuditLog> findLastSessionActionForUndo(
+            @Param("clinicId") UUID clinicId,
+            @Param("sessionId") UUID sessionId
+    );
 }

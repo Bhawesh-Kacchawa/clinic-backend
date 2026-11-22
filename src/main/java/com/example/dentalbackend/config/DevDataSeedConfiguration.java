@@ -96,10 +96,12 @@ public class DevDataSeedConfiguration {
                     .orElseGet(() -> createDoctor(clinic));
 
             LocalDate today = LocalDate.now(CLINIC_ZONE);
+            boolean afterNoon = !LocalTime.now(CLINIC_ZONE).isBefore(LocalTime.NOON);
             seedSession(clinicSessionRepository, clinic, doctor, today, SessionType.MORNING,
-                    LocalTime.of(9, 0), LocalTime.of(13, 0));
+                    LocalTime.of(9, 0), LocalTime.of(13, 0),
+                    afterNoon ? BookingStatus.CLOSED : BookingStatus.OPEN);
             seedSession(clinicSessionRepository, clinic, doctor, today, SessionType.EVENING,
-                    LocalTime.of(17, 0), LocalTime.of(21, 0));
+                    LocalTime.of(17, 0), LocalTime.of(21, 0), BookingStatus.OPEN);
 
             log.info("Development seed data ensured for clinic '{}' and doctor '{}'.", CLINIC_SLUG, doctorEmail);
         }
@@ -128,7 +130,8 @@ public class DevDataSeedConfiguration {
                 LocalDate date,
                 SessionType type,
                 LocalTime startTime,
-                LocalTime endTime
+                LocalTime endTime,
+                BookingStatus bookingStatus
         ) {
             Optional<ClinicSession> existingSession = repository.findByClinic_IdAndDateAndType(
                     clinic.getId(),
@@ -136,11 +139,7 @@ public class DevDataSeedConfiguration {
                     type
             );
             if (existingSession.isPresent()) {
-                ClinicSession session = existingSession.get();
-                if (session.getBookingStatus() == BookingStatus.SCHEDULED
-                        && !Instant.now().isBefore(session.getBookingOpensAt())) {
-                    session.setBookingStatus(BookingStatus.OPEN);
-                }
+                existingSession.get().setBookingStatus(bookingStatus);
                 return;
             }
 
@@ -153,7 +152,7 @@ public class DevDataSeedConfiguration {
             session.setEndTime(endTime);
             session.setMaxAppointments(20);
             session.setBookingOpensAt(date.atStartOfDay(CLINIC_ZONE).toInstant());
-            session.setBookingStatus(BookingStatus.OPEN);
+            session.setBookingStatus(bookingStatus);
             session.setAvgMinutes(15);
             repository.save(session);
         }

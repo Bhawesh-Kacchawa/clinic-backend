@@ -3,6 +3,7 @@ package com.example.dentalbackend.service;
 import com.example.dentalbackend.dto.CallNextResponse;
 import com.example.dentalbackend.dto.ClinicCallNextResponse;
 import com.example.dentalbackend.dto.CreateWalkInBookingRequest;
+import com.example.dentalbackend.dto.StaffQueueBookingResponse;
 import com.example.dentalbackend.entity.AuditLog;
 import com.example.dentalbackend.entity.Booking;
 import com.example.dentalbackend.entity.BookingSource;
@@ -136,6 +137,51 @@ class StaffQueueServiceTest {
         assertNull(response.completedBooking());
         assertNull(response.servingBooking());
         assertTrue(response.queueEmpty());
+    }
+
+    @Test
+    void manuallyServingCalledBookingCompletesCurrentPatientAndStartsSelectedPatient() {
+        UUID clinicId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        Clinic clinic = new Clinic();
+        clinic.setSlug("demo-dental");
+        ClinicSession session = session(sessionId);
+        session.setClinic(clinic);
+        Booking current = booking(sessionId, 1, BookingState.SERVING);
+        current.setSession(session);
+        Booking selected = booking(sessionId, 2, BookingState.CALLED);
+        selected.setSession(session);
+        when(bookingRepository.findByIdAndSession_Clinic_Id(selected.getId(), clinicId))
+                .thenReturn(Optional.of(selected));
+        when(clinicSessionRepository.findByIdAndClinic_IdForUpdate(sessionId, clinicId))
+                .thenReturn(Optional.of(session));
+        when(bookingRepository.findByIdAndClinicIdForUpdate(selected.getId(), clinicId))
+                .thenReturn(Optional.of(selected));
+        when(bookingRepository.findBySessionIdAndStatusForUpdate(sessionId, clinicId, BookingState.SERVING))
+                .thenReturn(List.of(current));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        StaffQueueBookingResponse response = staffQueueService.serveManually(
+                STAFF_ID,
+                clinicId,
+                "demo-dental",
+                selected.getId()
+        );
+
+        assertEquals(BookingState.DONE, current.getStatus());
+        assertNotNull(current.getCompletedAt());
+        assertEquals(BookingState.SERVING, selected.getStatus());
+        assertNotNull(selected.getStartedAt());
+        assertEquals(selected.getId(), response.id());
+        assertEquals(BookingState.SERVING, response.status());
+        ArgumentCaptor<AuditLog> auditCaptor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository, times(2)).save(auditCaptor.capture());
+        assertEquals(BookingState.DONE, auditCaptor.getAllValues().get(0).getAfterStatus());
+        assertEquals(BookingState.SERVING, auditCaptor.getAllValues().get(1).getAfterStatus());
+        assertEquals(
+                auditCaptor.getAllValues().get(0).getOperationId(),
+                auditCaptor.getAllValues().get(1).getOperationId()
+        );
     }
 
     @Test

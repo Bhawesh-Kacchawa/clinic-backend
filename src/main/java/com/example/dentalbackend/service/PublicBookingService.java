@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,28 +34,36 @@ public class PublicBookingService {
     private final ClinicSessionRepository clinicSessionRepository;
     private final BookingRepository bookingRepository;
     private final String defaultClinicSlug;
+    private final Clock clock;
 
     public PublicBookingService(
             ClinicSessionRepository clinicSessionRepository,
             BookingRepository bookingRepository,
-            @Value("${demo.clinic.slug:demo-dental}") String defaultClinicSlug
+            @Value("${demo.clinic.slug:demo-dental}") String defaultClinicSlug,
+            Clock clock
     ) {
         this.clinicSessionRepository = clinicSessionRepository;
         this.bookingRepository = bookingRepository;
         this.defaultClinicSlug = defaultClinicSlug;
+        this.clock = clock;
     }
 
     @Transactional
     public PublicBookingResponse createBooking(CreatePublicBookingRequest request) {
         ClinicSession session = findSessionForUpdate(request.sessionId());
-        Instant now = Instant.now();
+        Instant now = clock.instant();
 
         if (session.getBookingStatus() == BookingStatus.SCHEDULED
                 && !now.isBefore(session.getBookingOpensAt())) {
             session.setBookingStatus(BookingStatus.OPEN);
         }
 
-        if (session.getBookingStatus() != BookingStatus.OPEN || now.isBefore(session.getBookingOpensAt())) {
+        if (ClinicBookingAvailability.statusAt(
+                session.getType(),
+                session.getDate(),
+                session.getBookingStatus(),
+                now
+        ) != BookingStatus.OPEN || now.isBefore(session.getBookingOpensAt())) {
             throw new BookingClosedException("Booking is not open for this session.");
         }
 

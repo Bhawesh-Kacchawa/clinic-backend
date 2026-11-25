@@ -103,7 +103,7 @@ class PublicBookingIntegrationTest {
         ClinicSession session = new ClinicSession();
         session.setClinic(clinic);
         session.setDoctor(doctor);
-        session.setType(SessionType.MORNING);
+        session.setType(SessionType.EVENING);
         sessionDate = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         session.setDate(sessionDate);
         session.setStartTime(LocalTime.of(9, 0));
@@ -202,7 +202,7 @@ class PublicBookingIntegrationTest {
     @Test
     void acceptsSessionTypeAsSessionIdForDemoClinic() {
         CreatePublicBookingRequest request = new CreatePublicBookingRequest(
-                "MORNING",
+                "EVENING",
                 "Alias Patient",
                 "5550009999",
                 "12 Example Street"
@@ -219,7 +219,7 @@ class PublicBookingIntegrationTest {
         assertEquals(1, response.getBody().tokenNo());
         assertNotNull(response.getBody().session());
         assertEquals(sessionId, response.getBody().session().sessionId());
-        assertEquals(SessionType.MORNING, response.getBody().session().type());
+        assertEquals(SessionType.EVENING, response.getBody().session().type());
         assertEquals(sessionDate, response.getBody().session().date());
         assertEquals(LocalTime.of(9, 0), response.getBody().session().startTime());
         assertEquals(LocalTime.of(13, 0), response.getBody().session().endTime());

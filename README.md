@@ -21,6 +21,8 @@ Create a session with `POST /api/staff/sessions` using `type`, `date`, `startTim
 
 Create an online booking with `POST /api/public/bookings` using `sessionId`, `patientName`, `phone`, and optional `address`. Booking details returned in the staff queue include the patient's `address`.
 
+Morning-session online booking closes automatically at 12:00 noon India time. The public session list reports morning as closed from noon onward; evening availability continues to follow its configured booking status.
+
 Get a session's ordered bookings with `GET /api/staff/sessions/{id}/queue`. Advance the queue with `POST /api/staff/queue/call-next` and a JSON `sessionId`; the current serving booking is completed and the next booked booking starts. When there is no next booking, the response sets `queueEmpty` to `true`. Call a specific booked or called token with `POST /api/staff/queue/call/{bookingId}`; it moves to `SERVING` and any current serving token becomes `DONE`.
 
 For today's session by clinic slug and session type, call the next patient with `POST /api/clinics/{slug}/sessions/{type}/call-next` (for example, `/api/clinics/demo-dental/sessions/EVENING/call-next`). This secured endpoint requires a staff Bearer token and returns the updated ordered `queue` along with the completed and serving bookings.

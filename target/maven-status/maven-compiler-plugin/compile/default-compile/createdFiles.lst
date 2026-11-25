@@ -26,12 +26,14 @@ com/example/dentalbackend/config/DevDataSeedConfiguration$DevDataSeeder.class
 com/example/dentalbackend/dto/UndoQueueActionRequest.class
 com/example/dentalbackend/entity/Booking.class
 com/example/dentalbackend/config/package-info.class
+com/example/dentalbackend/service/ClinicBookingAvailability.class
 com/example/dentalbackend/dto/ClinicCallNextResponse.class
 com/example/dentalbackend/service/StaffClinicSessionService.class
 com/example/dentalbackend/repository/ClinicRepository.class
 com/example/dentalbackend/exception/InvalidCredentialsException.class
 com/example/dentalbackend/exception/BookingClosedException.class
 com/example/dentalbackend/security/StaffPrincipal.class
+com/example/dentalbackend/config/TimeConfiguration.class
 com/example/dentalbackend/service/StaffClinicSessionService$1.class
 com/example/dentalbackend/repository/ClinicSessionRepository.class
 com/example/dentalbackend/dto/ClinicBookingDto.class

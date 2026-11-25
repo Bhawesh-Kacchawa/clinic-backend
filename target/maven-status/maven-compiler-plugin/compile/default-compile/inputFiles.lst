@@ -2,6 +2,7 @@
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/CorsConfig.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/DevDataSeedConfiguration.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/SecurityConfig.java
+/home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/TimeConfiguration.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/package-info.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/AuthController.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/controller/ClinicBookingController.java
@@ -65,6 +66,7 @@
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/security/JwtService.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/security/StaffPrincipal.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/service/AuthService.java
+/home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/service/ClinicBookingAvailability.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/service/ClinicBookingService.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/service/PublicBookingService.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/service/PublicClinicSessionService.java

@@ -1,3 +1,5 @@
-com/example/dentalbackend/service/StaffQueueServiceTest.class
 com/example/dentalbackend/security/JwtServiceTest.class
+com/example/dentalbackend/service/PublicBookingServiceTest.class
+com/example/dentalbackend/service/PublicClinicSessionServiceTest.class
+com/example/dentalbackend/service/StaffQueueServiceTest.class
 com/example/dentalbackend/PublicBookingIntegrationTest.class

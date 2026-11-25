@@ -9,6 +9,7 @@ import com.example.dentalbackend.repository.ClinicSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -21,23 +22,42 @@ public class PublicClinicSessionService {
 
     private final ClinicRepository clinicRepository;
     private final ClinicSessionRepository clinicSessionRepository;
+    private final Clock clock;
 
     public PublicClinicSessionService(
             ClinicRepository clinicRepository,
-            ClinicSessionRepository clinicSessionRepository
+            ClinicSessionRepository clinicSessionRepository,
+            Clock clock
     ) {
         this.clinicRepository = clinicRepository;
         this.clinicSessionRepository = clinicSessionRepository;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
     public PublicSessionsResponse getTodaysSessions(String clinicSlug) {
-        Instant serverTime = Instant.now();
+        Instant serverTime = clock.instant();
         LocalDate today = serverTime.atZone(CLINIC_TIME_ZONE).toLocalDate();
 
         Clinic clinic = clinicRepository.findBySlug(clinicSlug)
                 .orElseThrow(() -> new NotFoundException("Clinic not found."));
-        List<PublicSessionDto> sessions = clinicSessionRepository.findPublicSessions(clinic.getId(), today);
+        List<PublicSessionDto> sessions = clinicSessionRepository.findPublicSessions(clinic.getId(), today).stream()
+                .map(session -> new PublicSessionDto(
+                        session.id(),
+                        session.type(),
+                        session.startTime(),
+                        session.endTime(),
+                        session.maxAppointments(),
+                        session.bookedCount(),
+                        ClinicBookingAvailability.statusAt(
+                                session.type(),
+                                today,
+                                session.bookingStatus(),
+                                serverTime
+                        ),
+                        session.bookingOpensAt()
+                ))
+                .toList();
 
         return new PublicSessionsResponse(serverTime, sessions);
     }

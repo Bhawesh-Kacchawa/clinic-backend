@@ -10,7 +10,7 @@ import java.time.ZoneId;
 
 final class ClinicBookingAvailability {
 
-    private static final ZoneId CLINIC_TIME_ZONE = ZoneId.of("Asia/Kolkata");
+    static final ZoneId CLINIC_TIME_ZONE = ZoneId.of("Asia/Kolkata");
 
     private ClinicBookingAvailability() {
     }
@@ -19,10 +19,12 @@ final class ClinicBookingAvailability {
             SessionType type,
             LocalDate date,
             BookingStatus currentStatus,
+            boolean morningBookingOverride,
             Instant now
     ) {
         if (type == SessionType.MORNING
-                && !now.atZone(CLINIC_TIME_ZONE).isBefore(date.atTime(LocalTime.NOON).atZone(CLINIC_TIME_ZONE))) {
+                && !now.isBefore(date.atTime(LocalTime.NOON).atZone(CLINIC_TIME_ZONE).toInstant())
+                && !(morningBookingOverride && now.atZone(CLINIC_TIME_ZONE).toLocalDate().equals(date))) {
             return BookingStatus.CLOSED;
         }
         return currentStatus;

@@ -1,13 +1,19 @@
 package com.example.dentalbackend.controller;
 
 import com.example.dentalbackend.dto.ClinicCallNextResponse;
+import com.example.dentalbackend.dto.StaffClinicSessionResponse;
 import com.example.dentalbackend.dto.StaffQueueBookingResponse;
+import com.example.dentalbackend.dto.UpdateClinicSessionStatusRequest;
 import com.example.dentalbackend.entity.SessionType;
 import com.example.dentalbackend.security.StaffPrincipal;
+import com.example.dentalbackend.service.StaffClinicSessionService;
 import com.example.dentalbackend.service.StaffQueueService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,9 +28,24 @@ public class ClinicQueueController {
     private static final ZoneId CLINIC_TIME_ZONE = ZoneId.of("Asia/Kolkata");
 
     private final StaffQueueService staffQueueService;
+    private final StaffClinicSessionService clinicSessionService;
 
-    public ClinicQueueController(StaffQueueService staffQueueService) {
+    public ClinicQueueController(
+            StaffQueueService staffQueueService,
+            StaffClinicSessionService clinicSessionService
+    ) {
         this.staffQueueService = staffQueueService;
+        this.clinicSessionService = clinicSessionService;
+    }
+
+    @PatchMapping("/status")
+    public StaffClinicSessionResponse updateStatus(
+            @AuthenticationPrincipal StaffPrincipal principal,
+            @PathVariable String slug,
+            @PathVariable SessionType type,
+            @Valid @RequestBody UpdateClinicSessionStatusRequest request
+    ) {
+        return clinicSessionService.updateStatusForToday(principal.clinicId(), slug, type, request.action());
     }
 
     @PostMapping("/call-next")

@@ -14,20 +14,26 @@ import com.example.dentalbackend.repository.BookingRepository;
 import com.example.dentalbackend.repository.ClinicRepository;
 import com.example.dentalbackend.repository.ClinicSessionRepository;
 import com.example.dentalbackend.repository.StaffUserRepository;
+import com.example.dentalbackend.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,8 +50,15 @@ import java.util.concurrent.Future;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Testcontainers
+@AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PublicBookingIntegrationTest {
 
@@ -74,14 +87,25 @@ class PublicBookingIntegrationTest {
     @Autowired
     private StaffUserRepository staffUserRepository;
 
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @MockitoBean
+    private Clock clock;
+
     @LocalServerPort
     private int port;
 
     private UUID sessionId;
     private LocalDate sessionDate;
+    private String staffToken;
 
     @BeforeEach
     void createOpenSessionWithFiveSlots() {
+        when(clock.instant()).thenAnswer(invocation -> Instant.now());
         bookingRepository.deleteAll();
         clinicSessionRepository.deleteAll();
         staffUserRepository.deleteAll();
@@ -99,6 +123,7 @@ class PublicBookingIntegrationTest {
         doctor.setPasswordHash("test-password-hash");
         doctor.setRole(StaffRole.DOCTOR);
         doctor = staffUserRepository.save(doctor);
+        staffToken = jwtService.createToken(doctor);
 
         ClinicSession session = new ClinicSession();
         session.setClinic(clinic);
@@ -113,6 +138,41 @@ class PublicBookingIntegrationTest {
         session.setBookingStatus(BookingStatus.OPEN);
         session.setAvgMinutes(15);
         sessionId = clinicSessionRepository.save(session).getId();
+    }
+
+    @Test
+    void staffCanReopenMorningAfterNoonUntilAllSlotsAreBooked() throws Exception {
+        Instant noon = sessionDate.atTime(12, 0).atZone(ZoneId.of("Asia/Kolkata")).toInstant();
+        when(clock.instant()).thenReturn(noon);
+        ClinicSession session = clinicSessionRepository.findById(sessionId).orElseThrow();
+        session.setType(SessionType.MORNING);
+        session.setMaxAppointments(1);
+        session.setBookingOpensAt(noon.minusSeconds(60));
+        clinicSessionRepository.saveAndFlush(session);
+
+        String path = "/api/clinics/demo-dental/sessions/MORNING/status";
+        String booking = """
+                {"sessionId":"MORNING","patientName":"Patient","phone":"5550000000"}
+                """;
+        mockMvc.perform(get("/api/public/clinics/demo-dental/sessions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessions[0].bookingStatus").value("CLOSED"));
+        mockMvc.perform(post("/api/public/bookings").contentType(MediaType.APPLICATION_JSON).content(booking))
+                .andExpect(status().isConflict());
+        mockMvc.perform(patch(path).contentType(MediaType.APPLICATION_JSON).content("{\"action\":\"Open\"}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(patch(path).header("Authorization", "Bearer " + staffToken)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"action\":\"Open\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingStatus").value("OPEN"));
+        mockMvc.perform(get("/api/public/clinics/demo-dental/sessions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessions[0].bookingStatus").value("OPEN"))
+                .andExpect(jsonPath("$.sessions[0].morningBookingOverride").doesNotExist());
+        mockMvc.perform(post("/api/public/bookings").contentType(MediaType.APPLICATION_JSON).content(booking))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/public/bookings").contentType(MediaType.APPLICATION_JSON).content(booking))
+                .andExpect(status().isConflict());
     }
 
     @Test

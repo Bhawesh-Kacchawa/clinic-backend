@@ -2,6 +2,7 @@ package com.example.dentalbackend.dto;
 
 import com.example.dentalbackend.entity.BookingStatus;
 import com.example.dentalbackend.entity.SessionType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.Instant;
 import java.time.LocalTime;
@@ -15,6 +16,7 @@ public record PublicSessionDto(
         int maxAppointments,
         long bookedCount,
         BookingStatus bookingStatus,
-        Instant bookingOpensAt
+        Instant bookingOpensAt,
+        @JsonIgnore boolean morningBookingOverride
 ) {
 }

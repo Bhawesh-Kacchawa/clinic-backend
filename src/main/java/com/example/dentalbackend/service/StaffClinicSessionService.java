@@ -7,6 +7,7 @@ import com.example.dentalbackend.dto.UpdateClinicSessionStatusRequest.BookingAct
 import com.example.dentalbackend.entity.BookingStatus;
 import com.example.dentalbackend.entity.Clinic;
 import com.example.dentalbackend.entity.ClinicSession;
+import com.example.dentalbackend.entity.SessionType;
 import com.example.dentalbackend.entity.StaffRole;
 import com.example.dentalbackend.entity.StaffUser;
 import com.example.dentalbackend.exception.DuplicateClinicSessionException;
@@ -20,7 +21,10 @@ import com.example.dentalbackend.security.StaffPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,17 +35,20 @@ public class StaffClinicSessionService {
     private final ClinicRepository clinicRepository;
     private final StaffUserRepository staffUserRepository;
     private final BookingRepository bookingRepository;
+    private final Clock clock;
 
     public StaffClinicSessionService(
             ClinicSessionRepository clinicSessionRepository,
             ClinicRepository clinicRepository,
             StaffUserRepository staffUserRepository,
-            BookingRepository bookingRepository
+            BookingRepository bookingRepository,
+            Clock clock
     ) {
         this.clinicSessionRepository = clinicSessionRepository;
         this.clinicRepository = clinicRepository;
         this.staffUserRepository = staffUserRepository;
         this.bookingRepository = bookingRepository;
+        this.clock = clock;
     }
 
     @Transactional
@@ -137,7 +144,37 @@ public class StaffClinicSessionService {
             UUID sessionId,
             BookingAction action
     ) {
-        ClinicSession session = findOwnedSession(sessionId, clinicId);
+        ClinicSession session = clinicSessionRepository.findByIdAndClinic_IdForUpdate(sessionId, clinicId)
+                .orElseThrow(() -> new NotFoundException("Clinic session not found."));
+        return updateStatus(session, action);
+    }
+
+    @Transactional
+    public StaffClinicSessionResponse updateStatusForToday(
+            UUID clinicId,
+            String clinicSlug,
+            SessionType type,
+            BookingAction action
+    ) {
+        LocalDate today = clock.instant().atZone(ClinicBookingAvailability.CLINIC_TIME_ZONE).toLocalDate();
+        ClinicSession session = clinicSessionRepository.findByClinicIdAndSlugAndDateAndTypeForUpdate(
+                        clinicId, clinicSlug, today, type
+                )
+                .orElseThrow(() -> new NotFoundException("Clinic session not found."));
+        return updateStatus(session, action);
+    }
+
+    private StaffClinicSessionResponse updateStatus(ClinicSession session, BookingAction action) {
+        var now = clock.instant().atZone(ClinicBookingAvailability.CLINIC_TIME_ZONE);
+        boolean reopeningMorning =
+                action == BookingAction.OPEN
+                        && session.getType() == SessionType.MORNING
+                        && session.getDate().equals(now.toLocalDate())
+                        && !now.toLocalTime().isBefore(LocalTime.NOON);
+        session.setMorningBookingOverride(reopeningMorning);
+        if (reopeningMorning && now.toInstant().isBefore(session.getBookingOpensAt())) {
+            session.setBookingOpensAt(now.toInstant());
+        }
         session.setBookingStatus(switch (action) {
             case OPEN -> BookingStatus.OPEN;
             case PAUSE -> BookingStatus.PAUSED;

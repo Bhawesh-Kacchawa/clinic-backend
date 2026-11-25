@@ -62,6 +62,9 @@ public class ClinicSession {
     @Column(name = "booking_status", nullable = false, length = 20)
     private BookingStatus bookingStatus;
 
+    @Column(name = "morning_booking_override", nullable = false)
+    private boolean morningBookingOverride;
+
     @Column(name = "avg_minutes", nullable = false)
     private int avgMinutes;
 }

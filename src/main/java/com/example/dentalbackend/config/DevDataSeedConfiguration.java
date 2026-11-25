@@ -139,7 +139,6 @@ public class DevDataSeedConfiguration {
                     type
             );
             if (existingSession.isPresent()) {
-                existingSession.get().setBookingStatus(bookingStatus);
                 return;
             }
 

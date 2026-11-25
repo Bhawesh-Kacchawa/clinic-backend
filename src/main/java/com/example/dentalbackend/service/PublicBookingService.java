@@ -62,6 +62,7 @@ public class PublicBookingService {
                 session.getType(),
                 session.getDate(),
                 session.getBookingStatus(),
+                session.isMorningBookingOverride(),
                 now
         ) != BookingStatus.OPEN || now.isBefore(session.getBookingOpensAt())) {
             throw new BookingClosedException("Booking is not open for this session.");
@@ -115,7 +116,7 @@ public class PublicBookingService {
             } catch (IllegalArgumentException exception) {
                 throw new NotFoundException("Session must be a session UUID, MORNING, or EVENING.");
             }
-            LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
+            LocalDate today = clock.instant().atZone(ZoneId.of("Asia/Kolkata")).toLocalDate();
             return clinicSessionRepository.findByClinicSlugAndDateAndTypeForUpdate(
                             defaultClinicSlug,
                             today,

@@ -53,9 +53,11 @@ public class PublicClinicSessionService {
                                 session.type(),
                                 today,
                                 session.bookingStatus(),
+                                session.morningBookingOverride(),
                                 serverTime
                         ),
-                        session.bookingOpensAt()
+                        session.bookingOpensAt(),
+                        session.morningBookingOverride()
                 ))
                 .toList();
 

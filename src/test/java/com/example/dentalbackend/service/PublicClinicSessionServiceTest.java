@@ -63,6 +63,28 @@ class PublicClinicSessionServiceTest {
         );
     }
 
+    @Test
+    void showsReopenedMorningSessionAsOpenAfterNoon() {
+        UUID clinicId = UUID.randomUUID();
+        Clinic clinic = new Clinic();
+        clinic.setId(clinicId);
+        ClinicRepository clinicRepository = mock(ClinicRepository.class);
+        ClinicSessionRepository sessionRepository = mock(ClinicSessionRepository.class);
+        when(clinicRepository.findBySlug("clinic")).thenReturn(Optional.of(clinic));
+        PublicSessionDto morning = session(SessionType.MORNING);
+        when(sessionRepository.findPublicSessions(clinicId, TODAY)).thenReturn(List.of(
+                new PublicSessionDto(morning.id(), morning.type(), morning.startTime(), morning.endTime(),
+                        morning.maxAppointments(), morning.bookedCount(), morning.bookingStatus(),
+                        morning.bookingOpensAt(), true)
+        ));
+        PublicClinicSessionService service = new PublicClinicSessionService(
+                clinicRepository, sessionRepository,
+                Clock.fixed(TODAY.atTime(15, 0).atZone(CLINIC_TIME_ZONE).toInstant(), ZoneId.of("UTC"))
+        );
+
+        assertEquals(BookingStatus.OPEN, service.getTodaysSessions("clinic").sessions().getFirst().bookingStatus());
+    }
+
     private PublicSessionDto session(SessionType type) {
         return new PublicSessionDto(
                 UUID.randomUUID(),
@@ -72,7 +94,8 @@ class PublicClinicSessionServiceTest {
                 10,
                 0,
                 BookingStatus.OPEN,
-                Instant.EPOCH
+                Instant.EPOCH,
+                false
         );
     }
 }

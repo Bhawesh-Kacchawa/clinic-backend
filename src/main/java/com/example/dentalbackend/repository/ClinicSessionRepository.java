@@ -89,7 +89,8 @@ public interface ClinicSessionRepository extends JpaRepository<ClinicSession, UU
                  where booking.session = session
                    and booking.status <> com.example.dentalbackend.entity.BookingState.CANCELLED),
                 session.bookingStatus,
-                session.bookingOpensAt
+                session.bookingOpensAt,
+                session.morningBookingOverride
             )
             from ClinicSession session
             where session.clinic.id = :clinicId

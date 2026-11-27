@@ -16,6 +16,21 @@ Add these environment variables to the Web Service, using the PostgreSQL databas
 
 Do not use the development JWT key or enable the `dev` Spring profile in production.
 
+### Optional first-deploy data bootstrap
+
+For a new, empty production database, you can temporarily set these Render environment variables to create the initial clinic, doctor account, and today's morning/evening sessions:
+
+| Variable | Value |
+| --- | --- |
+| `APP_BOOTSTRAP_ENABLED` | `true` |
+| `APP_BOOTSTRAP_CLINIC_NAME` | Your clinic's display name |
+| `APP_BOOTSTRAP_CLINIC_SLUG` | The slug used by the frontend, such as `demo-dental` |
+| `APP_BOOTSTRAP_DOCTOR_NAME` | Doctor's display name |
+| `APP_BOOTSTRAP_DOCTOR_EMAIL` | Doctor's login email |
+| `APP_BOOTSTRAP_DOCTOR_PASSWORD` | A unique password of at least 12 characters |
+
+The bootstrap runs transactionally and only creates data when the `clinic` table is empty. It creates today's sessions in `Asia/Kolkata` time: morning 09:00–13:00 and evening 17:00–21:00, each with 20 appointments and 15-minute intervals. After the first successful startup, set `APP_BOOTSTRAP_ENABLED` to `false` or remove it. Create future sessions through the authenticated `POST /api/staff/sessions` endpoint.
+
 ## Staff authentication and sessions
 
 Staff can sign in with `POST /api/auth/login` using an email address and password:

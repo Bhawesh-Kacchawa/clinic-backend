@@ -53,7 +53,15 @@ class ProductionDataBootstrapConfigurationTest {
         ).seed();
 
         var clinicCaptor = forClass(Clinic.class);
-        verify(clinicRepository).save(clinicCaptor.capture());
+        verify(clinicRepository).save(clinicCaptThink of it like this: your Render database is empty, like a new notebook. The app looks for a clinic, doesn't find one, and says "Clinic not found". You need to write a few starting entries (a clinic, a doctor login, and morning and evening sessions) into that notebook.
+
+There are two ways to do it. The first is easier.
+
+Way 1: Let your Spring Boot code add the data (easiest)
+Create a new file in your backend, for example DataSeeder.java.
+In it, write code that says: "When the app starts, if there is no clinic, create one clinic, one doctor user, and two sessions."
+Push the code to GitHub. Render redeploys automatically.
+When the backend starts on Render, the data is added to the database by itself.or.capture());
         assertEquals("Sample Clinic", clinicCaptor.getValue().getName());
         assertEquals("sample-clinic", clinicCaptor.getValue().getSlug());
 

@@ -19,6 +19,9 @@ spring:
   jackson:
     time-zone: Asia/Kolkata
 
+server:
+  port: ${PORT:8080}
+
 app:
   jwt:
     secret: ${JWT_SECRET:ZGVudGFsLWJhY2tlbmQtZGV2ZWxvcG1lbnQtb25seS1zZWNyZXQtY2hhbmdlLWJlZm9yZS1kZXBsb3k=}

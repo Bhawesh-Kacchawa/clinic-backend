@@ -1,5 +1,21 @@
 # clinic-backend
 
+## Deploy on Render with Docker
+
+Render can build the included `Dockerfile` as a Web Service. Create a Render PostgreSQL database, then create a Web Service for this repository and select **Docker** as the runtime. Render detects the root `Dockerfile`; the app listens on Render's `PORT` (or port `8080` locally).
+
+Add these environment variables to the Web Service, using the PostgreSQL database's internal host, database name, username, and password:
+
+| Variable | Value |
+| --- | --- |
+| `DB_URL` | `jdbc:postgresql://<internal-host>:5432/<database-name>` |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
+| `JWT_SECRET` | A private Base64-encoded key of at least 256 bits (for example, generate one with `openssl rand -base64 32`) |
+| `FRONTEND_ORIGIN` | The deployed frontend's origin |
+
+Do not use the development JWT key or enable the `dev` Spring profile in production.
+
 ## Staff authentication and sessions
 
 Staff can sign in with `POST /api/auth/login` using an email address and password:

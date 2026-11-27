@@ -1,6 +1,7 @@
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/DentalBackendApplication.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/CorsConfig.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/DevDataSeedConfiguration.java
+/home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/ProductionDataBootstrapConfiguration.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/SecurityConfig.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/TimeConfiguration.java
 /home/bhawesh/Desktop/dental_backend/src/main/java/com/example/dentalbackend/config/package-info.java

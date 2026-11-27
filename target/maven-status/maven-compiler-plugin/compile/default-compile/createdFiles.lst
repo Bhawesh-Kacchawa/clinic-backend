@@ -14,6 +14,7 @@ com/example/dentalbackend/dto/PublicSessionsResponse.class
 com/example/dentalbackend/exception/DuplicateBookingException.class
 com/example/dentalbackend/dto/StaffAuditLogResponse.class
 com/example/dentalbackend/exception/InvalidStaffRequestException.class
+com/example/dentalbackend/config/ProductionDataBootstrapConfiguration$ProductionDataBootstrapper.class
 com/example/dentalbackend/security/JwtAuthenticationFilter.class
 com/example/dentalbackend/dto/StaffClinicSessionResponse.class
 com/example/dentalbackend/dto/CreatePublicBookingRequest.class
@@ -47,6 +48,7 @@ com/example/dentalbackend/config/CorsConfig.class
 com/example/dentalbackend/dto/LoginRequest.class
 com/example/dentalbackend/DentalBackendApplication.class
 com/example/dentalbackend/dto/StaffQueueBookingResponse.class
+com/example/dentalbackend/config/ProductionDataBootstrapConfiguration.class
 com/example/dentalbackend/service/StaffQueueService$BookingSnapshot.class
 com/example/dentalbackend/dto/PublicSessionDto.class
 com/example/dentalbackend/config/SecurityConfig.class

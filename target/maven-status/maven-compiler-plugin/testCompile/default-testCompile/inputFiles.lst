@@ -1,4 +1,5 @@
 /home/bhawesh/Desktop/dental_backend/src/test/java/com/example/dentalbackend/PublicBookingIntegrationTest.java
+/home/bhawesh/Desktop/dental_backend/src/test/java/com/example/dentalbackend/config/ProductionDataBootstrapConfigurationTest.java
 /home/bhawesh/Desktop/dental_backend/src/test/java/com/example/dentalbackend/security/JwtServiceTest.java
 /home/bhawesh/Desktop/dental_backend/src/test/java/com/example/dentalbackend/service/PublicBookingServiceTest.java
 /home/bhawesh/Desktop/dental_backend/src/test/java/com/example/dentalbackend/service/PublicClinicSessionServiceTest.java

@@ -24,7 +24,7 @@ server:
 
 app:
   bootstrap:
-    enabled: ${APP_BOOTSTRAP_ENABLED:true}
+    enabled: ${APP_BOOTSTRAP_ENABLED:false}
   jwt:
     secret: ${JWT_SECRET:ZGVudGFsLWJhY2tlbmQtZGV2ZWxvcG1lbnQtb25seS1zZWNyZXQtY2hhbmdlLWJlZm9yZS1kZXBsb3k=}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
